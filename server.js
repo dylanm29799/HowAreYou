@@ -83,10 +83,26 @@ app.post("/api/journal", upload.single("audio"), async (req, res) => {
   const started = Date.now();
   try {
     // 1) Transcribe (filename helps the API know the format)
+    // Map mimetype -> filename hint for OpenAI
+    function guessApiFilename(mime, fallback = "audio.mp3") {
+      if (!mime) return fallback;
+      if (/mp4|aac/i.test(mime)) return "audio.mp4"; // iOS MediaRecorder
+      if (/webm/i.test(mime)) return "audio.webm";
+      if (/ogg|opus/i.test(mime)) return "audio.ogg";
+      if (/mpeg|mp3/i.test(mime)) return "audio.mp3";
+      if (/wav/i.test(mime)) return "audio.wav";
+      return fallback;
+    }
+
+    const apiFilename = guessApiFilename(
+      req.file?.mimetype,
+      req.file?.originalname || "audio.mp3"
+    );
+
     const transcription = await openai.audio.transcriptions.create({
       model: "gpt-4o-mini-transcribe",
       file: fs.createReadStream(path.resolve(filePath)),
-      filename: req.file.originalname,
+      filename: apiFilename, // <- key fix
     });
 
     // 2) Analyze

@@ -218,10 +218,18 @@ async function startRecording() {
     recChunks = [];
     mediaRecorder.ondataavailable = (e) => e.data && e.data.size && recChunks.push(e.data);
     mediaRecorder.onstop = async () => {
-      const type = mediaRecorder.mimeType || "audio/webm";
-      const blob = new Blob(recChunks, { type });
-      const ext = type.includes("mp4") ? "m4a" : type.split("/")[1] || "webm";
-      const file = new File([blob], `recording.${ext}`, { type });
+// NEW: choose filename extension that OpenAI reliably accepts
+const type = mediaRecorder.mimeType || "audio/webm";
+const blob = new Blob(recChunks, { type });
+
+let filename = "recording.webm";
+if (/mp4/i.test(type)) filename = "recording.mp4";      // iOS Safari often uses audio/mp4 (AAC)
+else if (/webm/i.test(type)) filename = "recording.webm";
+else if (/ogg|opus/i.test(type)) filename = "recording.ogg";
+else if (/mpeg|mp3/i.test(type)) filename = "recording.mp3";
+else if (/wav/i.test(type)) filename = "recording.wav";
+
+const file = new File([blob], filename, { type });
       // preview
       const url = URL.createObjectURL(blob);
       $("preview").src = url; $("preview").style.display = "block";
