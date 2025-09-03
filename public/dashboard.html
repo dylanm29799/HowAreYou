@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>HowAreYou — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI; margin: 24px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .card { border: 1px solid #eee; border-radius: 12px; padding: 16px; }
+    .list li { margin: 8px 0; }
+    input, textarea, button { padding: 8px; margin: 4px 0; width: 100%; }
+  </style>
+</head>
+<body>
+  <h1>HowAreYou — Dashboard</h1>
+
+  <div class="row">
+    <div class="card">
+      <h3>Last 14 days (avg mood)</h3>
+      <canvas id="moodChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Quick entry</h3>
+      <form id="entryForm">
+        <label>Mood (0–10)</label>
+        <input type="number" min="0" max="10" name="mood" value="5" />
+        <label>Summary</label>
+        <input type="text" name="summary" placeholder="Short summary" />
+        <label>Advice</label>
+        <input type="text" name="advice" placeholder="One tip for tomorrow" />
+        <label>Transcript / Notes</label>
+        <textarea name="transcript" rows="4" placeholder="What happened?"></textarea>
+        <button type="submit">Save</button>
+      </form>
+      <p id="saveMsg"></p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px">
+    <h3>Recent entries</h3>
+    <ul id="entries" class="list"></ul>
+  </div>
+
+  <script>
+    async function fetchJSON(url) {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error("Request failed");
+      return r.json();
+    }
+
+    async function loadChart() {
+      const data = await fetchJSON("/api/stats/daily-mood?days=14");
+      const labels = data.map(d => d.day);
+      const values = data.map(d => Number(d.avg_mood));
+      const ctx = document.getElementById("moodChart").getContext("2d");
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{ label: "Avg mood", data: values }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { min: 0, max: 10 } }
+        }
+      });
+    }
+
+    async function loadEntries() {
+      const ul = document.getElementById("entries");
+      ul.innerHTML = "";
+      const items = await fetchJSON("/api/entries?limit=20");
+      for (const e of items) {
+        const li = document.createElement("li");
+        const when = new Date(e.created_at).toLocaleString("en-IE", { timeZone: "Europe/Dublin" });
+        li.textContent = `(${when}) mood=${e.mood ?? "-"} — ${e.summary ?? ""} ${e.advice ? "· tip: " + e.advice : ""}`;
+        ul.appendChild(li);
+      }
+    }
+
+    document.getElementById("entryForm").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const fd = new FormData(ev.currentTarget);
+      const body = {
+        mood: Number(fd.get("mood")),
+        summary: fd.get("summary") || null,
+        advice: fd.get("advice") || null,
+        transcript: fd.get("transcript") || null,
+      };
+      const r = await fetch("/api/entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const msg = document.getElementById("saveMsg");
+      if (r.ok) {
+        msg.textContent = "Saved ✔";
+        ev.currentTarget.reset();
+        await loadEntries();
+        await loadChart();
+      } else {
+        msg.textContent = "Save failed";
+      }
+    });
+
+    (async () => {
+      await loadChart();
+      await loadEntries();
+    })();
+  </script>
+</body>
+</html>
