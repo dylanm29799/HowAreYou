@@ -1,0 +1,12 @@
+{
+  "name": "voice-transcriber",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "transcribe": "node code/transcribe.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "openai": "^5.17.0"
+  }
+}
