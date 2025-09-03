@@ -2,3 +2,5 @@
 uploads/
 output/
 node_modules/
+
+/generated/prisma

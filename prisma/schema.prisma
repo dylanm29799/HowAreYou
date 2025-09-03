@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // @@map("accounts") // uncomment if you want a physical "accounts" table name
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  // @@map("verification_tokens")
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  hashedPassword String?
+
+  accounts Account[]
+  sessions Session[]
+  entries  Entry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Entry {
+  id     String  @id @default(cuid())
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt  DateTime @default(now()) @map("created_at")
+  mood       Int?
+  summary    String?  @map("summary")
+  transcript String?  @map("transcript")
+  advice     String?  @map("advice")
+  audioPath  String?  @map("audio_path")
+
+  // analysis + bookkeeping fields used by your script
+  modelAsr        String?  @map("model_asr")
+  modelAnalysis   String?  @map("model_analysis")
+  msElapsed       Int?     @map("ms_elapsed")
+  projectId       String?  @map("project_id")
+  tokensInput     Int?     @map("tokens_input")
+  tokensOutput    Int?     @map("tokens_output")
+  durationSeconds Int?     @map("duration_seconds")
+  costEstimateUsd Decimal? @map("cost_estimate_usd") @db.Decimal(10, 4)
+
+  @@index([userId, createdAt])
+  @@map("journal_entries")
+}
+
+/**
+ * keep Account, Session, VerificationToken as you already have
+ */
+
+// (Account, Session, VerificationToken models stay as you had them)

@@ -8,7 +8,7 @@ import path from "node:path";
 import fs from "node:fs";
 import OpenAI from "openai";
 import { fileURLToPath } from "node:url";
-import { insertEntry, listEntries } from "./db.js";
+import { insertEntry, listEntriesByLimit, getDailyMood } from "./db.js";
 
 // ── ESM path helpers
 const __filename = fileURLToPath(import.meta.url);
@@ -61,17 +61,60 @@ app.get("/", (_req, res) => {
   res.status(404).send(`index.html not found in ${publicDir}`);
 });
 
+app.use(express.json());
+
 // Health check
 app.get("/healthz", (_req, res) => res.json({ ok: true, publicDir }));
 
-// ── APIs
-app.get("/api/entries", async (_req, res) => {
+// GET entries (feed)
+app.get("/api/entries", async (req, res) => {
   try {
-    const rows = await listEntries(20);
+    const limit = Math.min(parseInt(req.query.limit || "20", 10), 100);
+    const rows = await listEntriesByLimit(limit);
     res.json(rows);
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: "DB error" });
+    res.status(500).json({ error: "failed_to_list_entries" });
+  }
+});
+
+// GET daily mood stats (last N days)
+app.get("/api/stats/daily-mood", async (req, res) => {
+  try {
+    const days = parseInt(req.query.days || "14", 10);
+    // If/when you add auth, pass userId from session here.
+    const rows = await getDailyMood(days /*, userId*/);
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "failed_to_get_stats" });
+  }
+});
+
+// POST a quick text entry (no audio)
+app.post("/api/entries", async (req, res) => {
+  try {
+    const { mood, summary, advice, transcript } = req.body || {};
+    const row = await insertEntry({
+      // user_id: sessionUserId ?? null, // add this when auth is wired
+      mood: mood ?? null,
+      summary: summary ?? null,
+      advice: advice ?? null,
+      transcript: transcript ?? null,
+      audio_path: null,
+      model_asr: null,
+      model_analysis: null,
+      ms_elapsed: null,
+      project_id: process.env.OPENAI_PROJECT_ID || null,
+      tokens_input: null,
+      tokens_output: null,
+      duration_seconds: null,
+      cost_estimate_usd: null,
+    });
+    res.json(row);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "failed_to_insert_entry" });
   }
 });
 
