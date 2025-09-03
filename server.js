@@ -10,10 +10,12 @@ import OpenAI from "openai";
 import { fileURLToPath } from "node:url";
 import { insertEntry, listEntries } from "./db.js";
 
+// Ensure uploads dir on ephemeral FS
+
 // --- Resolve absolute paths for ESM (so static serving works) ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
+fs.mkdirSync(path.join(__dirname, "uploads"), { recursive: true });
 const PORT = process.env.PORT || 3000;
 // instead of "const upload = multer({ dest: ... })"
 const storage = multer.diskStorage({
