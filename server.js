@@ -10,27 +10,34 @@ import OpenAI from "openai";
 import { fileURLToPath } from "node:url";
 import { insertEntry, listEntries } from "./db.js";
 
-// Ensure uploads dir on ephemeral FS
-
-// --- Resolve absolute paths for ESM (so static serving works) ---
+// ── ESM path helpers
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-fs.mkdirSync(path.join(__dirname, "uploads"), { recursive: true });
-const PORT = process.env.PORT || 3000;
-// instead of "const upload = multer({ dest: ... })"
+
+// ── Pick a public directory that actually exists in this build
+const publicCandidates = [
+  path.join(__dirname, "code", "public"),
+  path.join(__dirname, "public"),
+];
+const publicDir =
+  publicCandidates.find((p) => fs.existsSync(p)) ?? publicCandidates[0];
+
+// ── Ensure uploads dir exists (ephemeral on hosts like Railway)
+const uploadsDir = path.join(__dirname, "uploads");
+fs.mkdirSync(uploadsDir, { recursive: true });
+
+// ── Multer storage: keep original extension so OpenAI recognizes type
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "uploads")); // keep uploads folder
-  },
-  filename: (req, file, cb) => {
-    // Preserve extension (e.g., .mp3, .wav)
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname);
-    const safeName = Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
-    cb(null, safeName.endsWith(ext) ? safeName : safeName + ext);
+    const safeBase = Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
+    cb(null, safeBase.endsWith(ext) ? safeBase : safeBase + ext);
   },
 });
-
 const upload = multer({ storage });
+
+const PORT = process.env.PORT || 3000;
 
 if (!process.env.OPENAI_API_KEY || !process.env.OPENAI_PROJECT_ID) {
   console.error("Missing OPENAI_API_KEY or OPENAI_PROJECT_ID");
@@ -45,18 +52,19 @@ const openai = new OpenAI({
 
 const app = express();
 
-// --- Serve static frontend from /public ---
-const publicDir = path.join(__dirname, "code", "public");
+// ── Serve static frontend
 app.use(express.static(publicDir));
-
-// Optional explicit root route (helps if static middleware is bypassed)
+// Root route fallback (returns index.html if present, else helpful msg)
 app.get("/", (_req, res) => {
-  res.sendFile(path.join(publicDir, "index.html"));
+  const indexPath = path.join(publicDir, "index.html");
+  if (fs.existsSync(indexPath)) return res.sendFile(indexPath);
+  res.status(404).send(`index.html not found in ${publicDir}`);
 });
 
-// --- APIs ---
+// Health check
+app.get("/healthz", (_req, res) => res.json({ ok: true, publicDir }));
 
-// GET recent entries
+// ── APIs
 app.get("/api/entries", async (_req, res) => {
   try {
     const rows = await listEntries(20);
@@ -67,18 +75,18 @@ app.get("/api/entries", async (_req, res) => {
   }
 });
 
-// POST journal (upload audio -> transcribe -> analyze -> save)
+// Upload → transcribe → analyze → save
 app.post("/api/journal", upload.single("audio"), async (req, res) => {
   const filePath = req.file?.path;
   if (!filePath) return res.status(400).json({ error: "No file uploaded" });
 
   const started = Date.now();
   try {
-    // 1) Transcribe
+    // 1) Transcribe (filename helps the API know the format)
     const transcription = await openai.audio.transcriptions.create({
       model: "gpt-4o-mini-transcribe",
       file: fs.createReadStream(path.resolve(filePath)),
-      filename: req.file.originalname, // 👈 tell OpenAI the original name/extension
+      filename: req.file.originalname,
     });
 
     // 2) Analyze
@@ -96,7 +104,7 @@ Entry:
 
     const analysis = JSON.parse(completion.choices[0].message.content);
 
-    // 3) Estimate token costs (rough heuristic)
+    // 3) Rough token/cost estimate for analysis call (transcription billed separately)
     const inputTokens = Math.ceil((transcription.text?.length || 0) / 4);
     const outputTokens = Math.ceil(JSON.stringify(analysis).length / 4);
     const costInput = (inputTokens / 1_000_000) * 0.6;
@@ -130,7 +138,7 @@ Entry:
     console.error(e);
     res.status(500).json({ error: e?.message || "Processing failed" });
   } finally {
-    // optional: cleanup uploaded file
+    // Clean up uploaded file
     try {
       fs.unlinkSync(filePath);
     } catch {}
