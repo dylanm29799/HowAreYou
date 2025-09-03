@@ -19,8 +19,8 @@ const publicCandidates = [
   path.join(__dirname, "code", "public"),
   path.join(__dirname, "public"),
 ];
-const publicDir =
-  publicCandidates.find((p) => fs.existsSync(p)) ?? publicCandidates[0];
+
+const publicDir = path.join(__dirname, "public");
 
 // ── Ensure uploads dir exists (ephemeral on hosts like Railway)
 const uploadsDir = path.join(__dirname, "uploads");
