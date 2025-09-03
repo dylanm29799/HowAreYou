@@ -6,101 +6,93 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      --bg: #0b0d10; --card: #13161a; --muted: #9aa4b2; --text: #e6edf3;
-      --good: #31c48d; --ok: #f7b731; --bad: #f65f5f; --accent: #6ea8ff;
-      --border: #222832;
+      --bg:#0b0d10; --card:#13161a; --muted:#9aa4b2; --text:#e6edf3;
+      --good:#31c48d; --ok:#f7b731; --bad:#f65f5f; --accent:#6ea8ff; --border:#222832;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; padding: 24px; background: var(--bg); color: var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-    }
-    header { max-width: 900px; margin: 0 auto 18px; display: flex; justify-content: space-between; align-items: center; }
-    h1 { font-size: 22px; margin: 0; letter-spacing: 0.2px; }
-    main { max-width: 900px; margin: 0 auto; display: grid; gap: 18px; grid-template-columns: 1fr 1fr; }
-    @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
-    .card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 14px; padding: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.2);
-    }
-    .row { display: flex; gap: 10px; align-items: center; }
-    input[type=file] {
-      padding: 10px; border-radius: 10px; border: 1px dashed var(--border);
-      background: #0f1216; color: var(--text); width: 100%;
-    }
-    button {
-      padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
-      background: #1b212a; color: var(--text); cursor: pointer;
-    }
-    button:hover { background: #232a35; }
-    .pill {
-      display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
-      border-radius: 999px; font-size: 12px; font-weight: 600;
-      background: #0f141a; border: 1px solid var(--border); color: var(--muted);
-    }
-    .mood { font-weight: 700; }
-    .mood.good { color: var(--good); } .mood.ok { color: var(--ok); } .mood.bad { color: var(--bad); }
-    .muted { color: var(--muted); font-size: 12px; }
-    .grid { display: grid; gap: 10px; }
-    .entry { padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: #0f1216; }
-    .entry h4 { margin: 0 0 6px; font-size: 14px; }
-    .entry p { margin: 6px 0; font-size: 14px; }
-    details { margin-top: 8px; }
-    .status { min-height: 20px; font-size: 13px; color: var(--muted); }
-    .chart { height: 80px; display: flex; align-items: end; gap: 4px; }
-    .bar {
-      width: 100%; background: linear-gradient(180deg, rgba(110,168,255,.8), rgba(110,168,255,.2));
-      border-radius: 4px 4px 0 0; border: 1px solid rgba(110,168,255,.3);
-    }
-    .section-title { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-    .link { color: var(--accent); text-decoration: none; }
+    *{box-sizing:border-box}
+    body{margin:0;padding:24px;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    header{max-width:900px;margin:0 auto 18px;display:flex;justify-content:space-between;align-items:center}
+    h1{font-size:22px;margin:0;letter-spacing:.2px}
+    main{max-width:900px;margin:0 auto;display:grid;gap:18px;grid-template-columns:1fr 1fr}
+    @media (max-width:860px){main{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 2px 16px rgba(0,0,0,.2)}
+    .row{display:flex;gap:10px;align-items:center}
+    input[type=file]{padding:10px;border-radius:10px;border:1px dashed var(--border);background:#0f1216;color:var(--text);width:100%}
+    button{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#1b212a;color:var(--text);cursor:pointer}
+    button:hover{background:#232a35}
+    button[disabled]{opacity:.6;cursor:not-allowed}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:#0f141a;border:1px solid var(--border);color:var(--muted)}
+    .mood{font-weight:700}
+    .mood.good{color:var(--good)} .mood.ok{color:var(--ok)} .mood.bad{color:var(--bad)}
+    .muted{color:var(--muted);font-size:12px}
+    .grid{display:grid;gap:10px}
+    .entry{padding:12px;border:1px solid var(--border);border-radius:12px;background:#0f1216}
+    .entry h4{margin:0 0 6px;font-size:14px}
+    .entry p{margin:6px 0;font-size:14px}
+    details{margin-top:8px}
+    .status{min-height:20px;font-size:13px}
+    .ok{color:var(--good)} .warn{color:var(--ok)} .err{color:var(--bad)} .info{color:var(--muted)}
+    .chart{height:80px;display:flex;align-items:end;gap:4px}
+    .bar{width:100%;background:linear-gradient(180deg, rgba(110,168,255,.8), rgba(110,168,255,.2));border-radius:4px 4px 0 0;border:1px solid rgba(110,168,255,.3)}
+    .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .link{color:var(--accent);text-decoration:none}
+    audio{width:100%;margin-top:8px}
   </style>
 </head>
 <body>
-  <header>
-    <h1>HowAreYou — Prototype</h1>
-    <a class="pill link" href="/api/entries" target="_blank">View raw JSON</a>
-  </header>
+<header>
+  <h1>HowAreYou — Prototype</h1>
+  <a class="pill link" href="/api/entries" target="_blank">View raw JSON</a>
+</header>
 
-  <main>
-    <!-- Left: Upload + Latest result -->
-    <section class="card">
-      <div class="section-title">
-        <h2 style="margin:0;font-size:18px">New voice note</h2>
-      </div>
-      <form id="form" class="grid">
-        <input id="audio" type="file" accept="audio/*" required />
-        <div class="row">
-          <button type="submit">Transcribe & Analyze</button>
-          <span id="status" class="status"></span>
-        </div>
-      </form>
+<main>
+  <!-- Left: Upload + Record + Latest result -->
+  <section class="card">
+    <div class="section-title">
+      <h2 style="margin:0;font-size:18px">New voice note</h2>
+    </div>
 
-      <div id="result" style="margin-top:12px; display:none;">
-        <div class="row" style="justify-content:space-between;">
-          <span class="pill">Latest Result</span>
-          <span id="resultTime" class="muted"></span>
-        </div>
-        <div id="resultCard" class="entry" style="margin-top:8px;"></div>
+    <form id="form" class="grid">
+      <!-- iOS tip: capture hints to show mic/camera options -->
+      <input id="audio" type="file" accept="audio/*" capture />
+      <div class="row">
+        <button type="submit" id="uploadBtn">Transcribe & Analyze</button>
+        <button type="button" id="recordBtn" title="Record with your mic">🎙️ Record</button>
+        <span id="status" class="status info"></span>
       </div>
-    </section>
+      <audio id="preview" controls style="display:none"></audio>
+    </form>
 
-    <!-- Right: History + tiny chart -->
-    <section class="card">
-      <div class="section-title">
-        <h2 style="margin:0;font-size:18px">Recent entries</h2>
-        <button id="refresh">Refresh</button>
+    <div id="result" style="margin-top:12px; display:none;">
+      <div class="row" style="justify-content:space-between;">
+        <span class="pill">Latest Result</span>
+        <span id="resultTime" class="muted"></span>
       </div>
-      <div id="chart" class="chart" title="Mood last 10 entries"></div>
-      <div id="entries" class="grid" style="margin-top:10px;"></div>
-    </section>
-  </main>
+      <div id="resultCard" class="entry" style="margin-top:8px;"></div>
+    </div>
+  </section>
+
+  <!-- Right: History + tiny chart -->
+  <section class="card">
+    <div class="section-title">
+      <h2 style="margin:0;font-size:18px">Recent entries</h2>
+      <button id="refresh">Refresh</button>
+    </div>
+    <div id="chart" class="chart" title="Mood last 10 entries"></div>
+    <div id="entries" class="grid" style="margin-top:10px;"></div>
+  </section>
+</main>
 
 <script>
 const $ = (id) => document.getElementById(id);
 const moodClass = (m) => (m >= 7 ? "good" : m >= 4 ? "ok" : "bad");
 const moodEmoji = (m) => (m >= 8 ? "😄" : m >= 6 ? "🙂" : m >= 4 ? "😐" : "😕");
 const fmtDate = (iso) => new Date(iso).toLocaleString();
+
+function setStatus(text, cls="info") {
+  $("status").className = "status " + cls;
+  $("status").textContent = text;
+}
 
 function renderEntry(e) {
   const mood = e.mood ?? null;
@@ -147,9 +139,8 @@ function renderChart(rows) {
   c.innerHTML = "";
   if (!rows?.length) return;
   const last = rows.slice(0, 10).reverse(); // oldest -> newest
-  const max = 10;
   last.forEach(r => {
-    const h = Math.max(6, Math.round(((r.mood ?? 0) / max) * 80)); // 0–80px
+    const h = Math.max(6, Math.round(((r.mood ?? 0) / 10) * 80)); // 0–80px
     const div = document.createElement("div");
     div.className = "bar";
     div.style.height = h + "px";
@@ -158,35 +149,113 @@ function renderChart(rows) {
 }
 
 async function loadEntries() {
-  const res = await fetch("/api/entries");
-  const rows = await res.json();
-  $("entries").innerHTML = rows.map(renderEntry).join("");
-  renderChart(rows);
+  try {
+    const res = await fetch("/api/entries");
+    if (!res.ok) throw new Error("Failed to load history");
+    const rows = await res.json();
+    $("entries").innerHTML = rows.map(renderEntry).join("");
+    renderChart(rows);
+  } catch (e) {
+    $("entries").innerHTML = `<div class="muted">No history yet.</div>`;
+    console.error(e);
+  }
 }
 
-$("form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const file = $("audio").files[0];
-  if (!file) return;
-
-  $("status").textContent = "Uploading and analyzing…";
-  const fd = new FormData();
-  fd.append("audio", file);
-
+// ---------- Upload flow (shared by file input & recorder) ----------
+async function uploadFile(file) {
+  setStatus("Uploading and analyzing…", "info");
+  $("uploadBtn").disabled = true;
+  $("recordBtn").disabled = true;
   try {
+    const fd = new FormData();
+    fd.append("audio", file);
     const res = await fetch("/api/journal", { method: "POST", body: fd });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Upload failed");
 
-    $("status").textContent = "Done!";
+    setStatus("Done!", "ok");
     renderLatest(data);
     await loadEntries();
   } catch (err) {
-    $("status").textContent = "Error: " + err.message;
+    console.error(err);
+    setStatus("Error: " + err.message, "err");
+  } finally {
+    $("uploadBtn").disabled = false;
+    $("recordBtn").disabled = false;
   }
+}
+
+// ---------- File input submit ----------
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const file = $("audio").files[0];
+  if (!file) { setStatus("Pick an audio file or record one.", "warn"); return; }
+  await uploadFile(file);
 });
 
-$("refresh").addEventListener("click", loadEntries);
+// ---------- In-browser recording (iOS-friendly) ----------
+let mediaRecorder, recChunks = [], isRecording = false, activeStream;
+
+function pickBestMime() {
+  const cands = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4",           // iOS Safari often supports this
+    "audio/aac"
+  ];
+  for (const t of cands) {
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) return t;
+  }
+  return ""; // let browser choose
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    activeStream = stream;
+    const mimeType = pickBestMime();
+    mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    recChunks = [];
+    mediaRecorder.ondataavailable = (e) => e.data && e.data.size && recChunks.push(e.data);
+    mediaRecorder.onstop = async () => {
+      const type = mediaRecorder.mimeType || "audio/webm";
+      const blob = new Blob(recChunks, { type });
+      const ext = type.includes("mp4") ? "m4a" : type.split("/")[1] || "webm";
+      const file = new File([blob], `recording.${ext}`, { type });
+      // preview
+      const url = URL.createObjectURL(blob);
+      $("preview").src = url; $("preview").style.display = "block";
+      await uploadFile(file);
+      // cleanup
+      stream.getTracks().forEach(t => t.stop());
+      activeStream = null;
+    };
+    mediaRecorder.start();
+    isRecording = true;
+    $("recordBtn").textContent = "⏹️ Stop";
+    setStatus("Recording… tap Stop when done.", "info");
+  } catch (err) {
+    console.error(err);
+    setStatus("Mic blocked or unsupported in this browser.", "err");
+  }
+}
+
+function stopRecording() {
+  try {
+    if (mediaRecorder && isRecording) mediaRecorder.stop();
+  } finally {
+    isRecording = false;
+    $("recordBtn").textContent = "🎙️ Record";
+    setStatus("", "info");
+    if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
+  }
+}
+
+$("recordBtn").addEventListener("click", () => {
+  if (!isRecording) startRecording(); else stopRecording();
+});
+
+// ---------- Init ----------
 loadEntries();
 </script>
 </body>
